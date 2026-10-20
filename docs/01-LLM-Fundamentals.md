@@ -39,6 +39,8 @@ A decoding policy chooses one token
 The process repeats — using a KV cache to stay fast
 ```
 
+![A learner request flowing through tokenization, embeddings, Transformer layers, decoding, and a KV cache](/img/diagrams/ch01-request-journey.svg)
+
 By the end, you will be able to take a real input, inspect its tokenizer output, calculate a small causal-attention pass, choose an architecture for a task, and estimate why an inference server can run out of memory.
 
 > **Two tracks:** first we rebuild the mechanics from scratch. Then we inspect the same ideas in production tooling such as Qwen3, Hugging Face, and PyTorch. The goal is not to memorize vocabulary; it is to know what to check when the system behaves strangely.
@@ -271,6 +273,8 @@ The learner’s message is now a sequence of vectors. The Transformer’s job is
 
 Self-attention lets every token decide which other tokens matter for its current representation. The word `it` in a sentence can use information from earlier nouns; a code token can use a far-away function definition.
 
+![Causal self-attention projects token vectors into Q, K, and V, masks future positions, then mixes visible values](/img/diagrams/ch01-causal-attention.svg)
+
 Attention is a **dynamic weighted lookup**. It is not a database query and an attention map is not a reliable explanation of a model decision by itself.
 
 ## 2. Internals: Q, K, V and shapes
@@ -432,6 +436,8 @@ Given logits `[2.0, 1.0, 0.1, -1.0]`, calculate softmax probabilities at tempera
 The assistant has generated one token. To generate the next, it needs the earlier context again. Recomputing everything would be wasteful, so the server saves part of the work—and that is where memory pressure enters the story.
 
 During autoregressive generation, every new token needs attention over prior tokens. Recomputing past keys and values every step is wasteful. A **KV cache** stores prior K/V tensors so decoding reuses them.
+
+![A prompt prefill stage creates a KV cache, and each decode step reads and appends to it](/img/diagrams/ch01-kv-cache.svg)
 
 ## Prefill vs decode
 

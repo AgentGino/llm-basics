@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">An LLM request journey from text to generated answer</title>
+  <desc id="desc">A learner message moves through a tokenizer, token IDs, embeddings, transformer layers, logits, a decoding policy, and a key-value cache.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10152c"/><stop offset="1" stop-color="#1d2854"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#aebbe8"/></marker>
+    <style>
+      .h { font: 700 23px system-ui, sans-serif; fill: #fff; }
+      .s { font: 500 14px system-ui, sans-serif; fill: #cbd5f5; }
+      .k { font: 700 12px system-ui, sans-serif; letter-spacing: 1.2px; fill: #f6b865; }
+      .b { font: 700 16px system-ui, sans-serif; fill: #fff; }
+      .t { font: 500 12px system-ui, sans-serif; fill: #cbd5f5; }
+      .code { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #d9e2ff; }
+    </style>
+  </defs>
+  <rect width="1200" height="560" rx="24" fill="url(#bg)"/>
+  <g opacity=".18" stroke="#aebbe8"><path d="M0 65H1200M0 130H1200M0 195H1200M0 260H1200M0 325H1200M0 390H1200M0 455H1200M80 0V560M160 0V560M240 0V560M320 0V560M400 0V560M480 0V560M560 0V560M640 0V560M720 0V560M800 0V560M880 0V560M960 0V560M1040 0V560M1120 0V560"/></g>
+  <text x="58" y="66" class="k">ONE REQUEST, END TO END</text>
+  <text x="58" y="104" class="h">What the model sees when a learner asks a question</text>
+  <text x="58" y="133" class="s">Follow the same message through the system instead of learning components in isolation.</text>
+
+  <path d="M208 286H270M430 286H492M652 286H714M874 286H936" stroke="#aebbe8" stroke-width="3" marker-end="url(#arrow)" fill="none"/>
+  <path d="M1016 347V410H770" stroke="#f6b865" stroke-width="3" stroke-dasharray="7 7" marker-end="url(#arrow)" fill="none"/>
+
+  <g transform="translate(58 220)">
+    <rect width="150" height="132" rx="16" fill="#20325f" stroke="#8ea6ff" stroke-width="2"/>
+    <text x="20" y="31" class="k">01 · INPUT</text>
+    <text x="20" y="62" class="b">Learner message</text>
+    <text x="20" y="89" class="code">నమస్తే —</text>
+    <text x="20" y="110" class="code">explain attention 🚀</text>
+  </g>
+  <g transform="translate(270 220)">
+    <rect width="160" height="132" rx="16" fill="#164657" stroke="#55d0e9" stroke-width="2"/>
+    <text x="20" y="31" class="k">02 · TOKENIZE</text>
+    <text x="20" y="62" class="b">Tokenizer</text>
+    <text x="20" y="89" class="t">splits text into</text>
+    <text x="20" y="110" class="code">[148435, 31305, …]</text>
+  </g>
+  <g transform="translate(492 220)">
+    <rect width="160" height="132" rx="16" fill="#3d2c62" stroke="#c39bff" stroke-width="2"/>
+    <text x="20" y="31" class="k">03 · REPRESENT</text>
+    <text x="20" y="62" class="b">Embeddings</text>
+    <text x="20" y="89" class="t">look up learned</text>
+    <text x="20" y="110" class="code">vectors [T, d]</text>
+  </g>
+  <g transform="translate(714 220)">
+    <rect width="160" height="132" rx="16" fill="#28533c" stroke="#70dd9e" stroke-width="2"/>
+    <text x="20" y="31" class="k">04 · REASON</text>
+    <text x="20" y="62" class="b">Transformer</text>
+    <text x="20" y="89" class="t">attention + MLP</text>
+    <text x="20" y="110" class="code">contextual vectors</text>
+  </g>
+  <g transform="translate(936 220)">
+    <rect width="206" height="132" rx="16" fill="#684927" stroke="#f6b865" stroke-width="2"/>
+    <text x="20" y="31" class="k">05 · GENERATE</text>
+    <text x="20" y="62" class="b">Logits → decoding</text>
+    <text x="20" y="89" class="t">choose one next token</text>
+    <text x="20" y="110" class="code">"Attention"</text>
+  </g>
+  <g transform="translate(732 411)">
+    <rect width="284" height="94" rx="16" fill="#562d4d" stroke="#fb8cc7" stroke-width="2"/>
+    <text x="20" y="31" class="k">06 · KEEP CONTEXT</text>
+    <text x="20" y="61" class="b">KV cache</text>
+    <text x="20" y="81" class="t">reuse prior K/V instead of recomputing them</text>
+  </g>
+  <text x="58" y="514" class="t">Every later chapter changes one part of this journey: data changes the input, fine-tuning changes the model, optimization changes speed, and monitoring watches the whole path.</text>
+</svg>
