@@ -3,35 +3,67 @@ sidebar_position: 2
 slug: /llm-fundamentals
 ---
 
-# Chapter 1 — LLM Fundamentals: from text to tokens to systems
+# Chapter 1 — What an LLM actually sees
 
-**Certification map:** LLM architecture · self-attention · embeddings · encoder/decoder families · advanced sampling
+Imagine you are building a study assistant for this course.
 
-**Engineering outcome:** by the end of this chapter, you should be able to inspect a real tokenizer, calculate causal self-attention, explain a Transformer block with tensor shapes, select an architecture for a task, and estimate why an inference server runs out of KV-cache memory.
+A learner sends one innocent-looking message:
 
-> **Two tracks, always:** this chapter teaches the *from-scratch track* first so you understand the mechanics, then the *production track* so you can use real tooling without treating it as magic.
+> `నమస్తే — can you explain attention? 🚀`
 
-## The seven learning layers
+Your application says it is only 33 characters. The model server says it is 28 tokens. The response takes longer than a similar English question. Later, the system runs out of memory when several people ask long questions at once.
 
-Every major topic in this course follows the same loop:
+Those are not separate mysteries. They are one story: **a piece of text enters a machine, is converted into numbers, moves through a Transformer, and becomes one generated token at a time.**
 
-1. **Intuition** — a simple mental model.
-2. **Internals** — algorithm, shapes, mathematics, and implementation details.
-3. **Industry comparison** — how model families and libraries make different choices.
-4. **Code walkthrough** — a small executable example.
-5. **Experiment** — change an input or configuration and observe the result.
-6. **Trade-offs and failure modes** — quality, latency, memory, cost, and common mistakes.
-7. **Challenge** — independently build, measure, and explain something.
+This chapter follows that one request from keyboard to answer. At every stop, you will learn three things:
+
+- what the model is doing;
+- what can go wrong in a real system;
+- how to inspect it yourself rather than trusting a diagram.
+
+## The journey we will trace
+
+```text
+A learner types text
+      ↓
+Tokenizer turns text into token IDs
+      ↓
+Embeddings turn IDs into vectors
+      ↓
+Transformer layers mix information across the request
+      ↓
+The model scores possible next tokens
+      ↓
+A decoding policy chooses one token
+      ↓
+The process repeats — using a KV cache to stay fast
+```
+
+By the end, you will be able to take a real input, inspect its tokenizer output, calculate a small causal-attention pass, choose an architecture for a task, and estimate why an inference server can run out of memory.
+
+> **Two tracks:** first we rebuild the mechanics from scratch. Then we inspect the same ideas in production tooling such as Qwen3, Hugging Face, and PyTorch. The goal is not to memorize vocabulary; it is to know what to check when the system behaves strangely.
+
+## How to use this chapter
+
+Do not try to “finish” it in one sitting. Follow the request. When we stop at a stage, use the same rhythm:
+
+1. **See it** — get the intuition.
+2. **Open it** — inspect the internals, shapes, and math.
+3. **Compare it** — see how real model families differ.
+4. **Run it** — execute a small artifact with fixed inputs.
+5. **Break it** — change one variable and observe the result.
+6. **Debug it** — name the trade-off and likely failure mode.
+7. **Prove it** — complete a small challenge with a measurable outcome.
 
 This chapter uses **Qwen3-0.6B** as a recurring production reference model. Later chapters will fine-tune, evaluate, optimize, serve, and monitor a small open model; the tiny from-scratch experiments remain a separate track.
 
 ---
 
-# Part I — Tokenization: the contract between text and the model
+# Stop 1 — The message becomes tokens
 
-## 1. Intuition
+## First intuition
 
-A language model never receives words directly. It receives integer IDs. A **tokenizer** is the reversible-ish translation layer that turns a string into IDs and turns generated IDs back into text.
+The model never receives the learner’s words directly. It receives integer IDs. A **tokenizer** is the translation layer that turns a string into IDs and turns generated IDs back into text.
 
 ```text
 "The future of AI is multilingual 🚀"
@@ -184,7 +216,9 @@ Use the Hugging Face `tokenizers` library to train BPE tokenizers at 2K, 8K, and
 
 ---
 
-# Part II — Embeddings: learned coordinates, not dictionary definitions
+# Stop 2 — IDs become coordinates the model can work with
+
+The tokenizer has produced IDs. But `15342` does not mean “attention” to a neural network; it is just a location in a table. Our request now needs a numerical representation the Transformer can transform.
 
 ## 1. Intuition
 
@@ -229,7 +263,9 @@ For retrieval, dedicated embedding models usually pool or otherwise project a wh
 
 ---
 
-# Part III — Transformer blocks and causal self-attention
+# Stop 3 — Each token asks: what earlier information matters now?
+
+The learner’s message is now a sequence of vectors. The Transformer’s job is to let each vector borrow the context it needs without seeing the future answer.
 
 ## 1. Intuition
 
@@ -325,7 +361,9 @@ Implement multi-head causal attention as a PyTorch module. Add shape assertions,
 
 ---
 
-# Part IV — Position, architecture, and training objective
+# Stop 4 — The model learns the next-token game
+
+The Transformer can compare vectors, but it still needs to know order, choose a model shape, and learn from examples. This is where position, architecture, and the training objective enter the story.
 
 ## Positional information
 
@@ -365,7 +403,9 @@ This is cross-entropy loss over the vocabulary. **Teacher forcing** supplies the
 
 ---
 
-# Part V — Decoding: logits become decisions
+# Stop 5 — Scores become the next visible token
+
+After processing the request, the model has not yet written an answer. It has a score for every possible next token. A decoding policy decides how cautious or varied the next move should be.
 
 A decoder emits a **logit** for every vocabulary item. Softmax turns logits into a distribution. A decoding policy selects the next token.
 
@@ -387,7 +427,9 @@ Given logits `[2.0, 1.0, 0.1, -1.0]`, calculate softmax probabilities at tempera
 
 ---
 
-# Part VI — KV cache: why serving behavior changes with concurrency
+# Stop 6 — The conversation grows, so the server keeps a memory
+
+The assistant has generated one token. To generate the next, it needs the earlier context again. Recomputing everything would be wasteful, so the server saves part of the work—and that is where memory pressure enters the story.
 
 During autoregressive generation, every new token needs attention over prior tokens. Recomputing past keys and values every step is wasteful. A **KV cache** stores prior K/V tensors so decoding reuses them.
 
@@ -412,7 +454,9 @@ python ch01_kv_cache_estimator.py
 
 ---
 
-# Chapter 1 integrated build
+# The first incident report
+
+Return to the original message: `నమస్తే — can you explain attention? 🚀`. You can now trace exactly why it may use more tokens than expected, how those IDs become vectors, how causal attention uses its context, how one next token is selected, and why several long requests can exhaust memory.
 
 You now have the first artifact in the recurring engineering project.
 
